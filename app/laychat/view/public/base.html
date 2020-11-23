@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <script src="/static/admin/js/jquery.min.js"></script>
+    <script src="/static/layui/layui.js"></script>
+    <title>{block name="title"}安徽许彦祖的主页{/block}</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            background: linear-gradient(to bottom, #000000 0%, #5788fe 100%);
+        }
+        .filter {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #fe5757;
+            animation: colorChange 30s ease-in-out infinite;
+            animation-fill-mode: both;
+            mix-blend-mode: overlay;
+        }
+
+        @keyframes colorChange {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: .8;
+            }
+        }
+
+        .landscape {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /*background-image:url(https://openclipart.org/image/2400px/svg_to_png/250847/Trees-Landscape-Silhouette.png);
+            */
+            background-image: url(/static/images/xkbg.png);
+            background-size: 1000px 250px;
+            background-repeat: repeat-x;
+            background-position: center bottom;
+        }
+    </style>
+</head>
+<body>
+<div class="filter"></div>
+<canvas id="canvas"></canvas>
+<div class='landscape'>
+    <div class="layui-fluid" style="padding-top: 80px;">
+        <div class="layui-row layui-col-space30">
+            <div class="layui-col-sm5 layui-col-md4 layui-col-lg3"><!-- 左侧侧边栏 -->
+                {include file="public/side"}
+            </div>
+            <div class="layui-col-sm7 layui-col-md8 layui-col-lg9 cat-right"><!-- 右边主体 -->
+                {block name="main"}{/block}
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+<script src="/static/admin/js/xkhd.js"></script>
+{block name="js"}
+{/block}
+<script>
+ window.onresize = function(){
+setCanvasSize();
+}
+
+</script>

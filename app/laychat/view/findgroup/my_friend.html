@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的好友</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="/static/admin/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="/static/admin/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="/static/admin/css/animate.min.css" rel="stylesheet">
+    <link href="/static/admin/css/style.min.css?v=4.1.0" rel="stylesheet">
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <a href="javascript:history.back()"> <<< 后退</a> |
+                    <a href="javascript:removeMyGroup();">删除好友组</a>
+                    <button type="button" class="btn btn-w-m btn-warning"  style="margin-left: 500px;" id="addMyGroup">创建分组</button>
+                    <h2>我的好友 </h2>
+
+                    <div class="clients-list">
+                        <ul class="nav nav-tabs">
+                            {if count($myGroup) > 0}
+                            {foreach name="myGroup" item="vo" key="key"}
+                            <li {if condition="$key eq 0"}class="active"{/if} data="{$vo.id}">
+                            <a data-toggle="tab" href="#tab-1" onclick="javascript:show({$vo.id});">
+                                <i class="fa fa-user"></i> {$vo.groupname}</a>
+                            </li>
+                            {/foreach}
+                            {/if}
+                        </ul>
+                        <div class="tab-content">
+                            <div id="tab-1" class="tab-pane active">
+                                <div class="full-height-scroll">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <tbody id="showusers">
+                                            {if count($friend) > 0}
+                                            {foreach name="friend" item="vo"}
+                                            <tr>
+                                                <td class="client-avatar"><img alt="image" src="{$vo.avatar}"> </td>
+                                                <td> {$vo.username} </td>
+                                                <td> {$vo.sign} </td>
+                                                {if $vo.status == 'online'}
+                                                <td><button type="button" class="btn btn-info">在线</button></td>
+                                                {else/}
+                                                <td><button type="button" class="btn btn-default">离线</button></td>
+                                                {/if}
+                                                <td> <a href="javascript:remove({$vo.id});">移动分组</a></td>
+                                                <td> <a href="javascript:delFriend({$vo.id});">删除好友</a></td>
+                                            </tr>
+                                            {/foreach}
+                                            {/if}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 移动分组-->
+<div class="zTreeDemoBackground left" style="display: none" id="groups">
+    <div class="form-group">
+        <label class="col-sm-4 control-label">选择分组：</label>
+        <div class="col-sm-5">
+            <select name="groupid" class="form-control" required="" aria-required="true" id="groupid">
+                <option value="">请选择</option>
+                {if !empty($myGroup)}
+                {foreach name="myGroup" item="vo" key="key"}
+                <option value="{$vo.id}">{$vo.groupname}</option>
+                {/foreach}
+                {/if}
+            </select>
+        </div>
+    </div>
+</div>
+<!-- 创建分组-->
+<div style="display: none" id="createGroup">
+    <div class="form-group">
+        <label class="col-sm-4 control-label">分组名称：</label>
+        <div class="col-sm-5">
+            <input type="text" id="groupname">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">分组排序：</label>
+        <div class="col-sm-5">
+            <input type="number" id="groupsort" value="99">
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="nowgroup"/>
+<script type="text/javascript">
+    zNodes = '';
+</script>
+<script src="/static/admin/js/jquery.min.js?v=2.1.4"></script>
+<script src="/static/admin/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/static/admin/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+<script src="/static/admin/js/content.min.js?v=1.0.0"></script>
+<script src="/static/admin/js/plugins/layer/layer.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/admin/js/plugins/zTree/zTreeStyle.css" />
+<script type="text/javascript" src="/static/admin/js/plugins/zTree/jquery.ztree.core-3.5.js"></script>
+<script type="text/javascript" src="/static/admin/js/plugins/zTree/jquery.ztree.excheck-3.5.js"></script>
+<script type="text/javascript" src="/static/admin/js/plugins/zTree/jquery.ztree.exedit-3.5.js"></script>
+<script type="text/javascript">
+    //建立WebSocket通讯
+    var socket = new WebSocket('ws://127.0.0.1:7272');
+
+    $(function(){$(".full-height-scroll").slimScroll({height:"100%"})});
+    var index = '';
+    function show(id){
+        index = layer.load(0, {shade: false}); //0代表加载的风格，支持0-2
+        $.getJSON("{:url('findgroup/myFriend')}", {'id' : id}, function(res){
+            layer.close(index);
+            if(res.code !== 1){
+                return layer.msg(res.msg)
+            }
+            var _html = '';
+            $.each( res.data, function(k, v){
+                _html += '<tr><td class="client-avatar"><img alt="image" src="' + v.avatar + '"> </td>'
+                _html += '<td>' + v.username + '</td>';
+                _html += '<td>' + v.sign + '</td>';
+                v.type == 'online' ? _html += '<td><button type="button" class="btn btn-info">在线</button></td>':
+                        _html += '<td><button type="button" class="btn btn-default">离线</button></td>';
+                _html += '<td> <a href="javascript:remove(' + v.id + ');">移动分组</a></td>';
+                _html += '<td> <a href="javascript:delFriend(' + v.id + ');">删除好友</a></td></tr>';
+
+            });
+            $("#showusers").html( _html );
+        })
+    }
+    //删除好友
+    function delFriend(mid){
+        layer.open({
+            type: 1,
+            area:['350px', '200px'],
+            title:'提示',
+            skin: 'layui-layer-demo', //加上边框
+            content: '<h3 style="margin-top: 50px;text-align: center;color: red;"> 确认删除好友吗 ?</h3>',
+            btn: ['确认','取消'],
+            yes: function(index, layero){
+                $.getJSON("{:url('findgroup/delFriend')}", {'mid' : mid}, function(res){
+                    if( 1 == res.code ){
+                        layer.alert( res.msg, {'icon' : 1}, function(){
+                            window.location.reload();
+                        });
+                    }else{
+                        layer.alert( res.msg, {'icon' : 2} );
+                    }
+                })
+                layer.close(index)
+            }
+        });
+    }
+    //移动分组
+    function　remove(mid){
+        layer.open({
+            type: 1,
+            area:['350px', '200px'],
+            title:'移动分组',
+            skin: 'layui-layer-demo', //加上边框
+            content: $('#groups'),
+            btn: ['确认','取消'],
+            yes: function(index, layero){
+                var gid = $("#groupid").val();
+                if( '' == gid ){
+                    layer.alert( '请选择群组', {'icon' : 2} );
+                    return;
+                }
+                $.getJSON("{:url('findgroup/removeFriend')}", {'gid' : gid,'mid' : mid}, function(res){
+                    if( 1 == res.code ){
+                        var add_data = '{"type":"delFriend", "data" : {"id" : ' + gid + ',"mid" :'+ mid + '}';
+                        socket.send( add_data );  //发送socket
+
+                        layer.msg( res.msg, {'icon' : 1,'time': 1000}, function(){
+                            window.location.reload();
+                        })
+                    }else{
+                        layer.msg( res.msg, {'icon' : 2} );
+                    }
+                })
+                //layer.close(index)
+            }
+        });
+    }
+    //删除分组
+    function　removeMyGroup(){
+        layer.open({
+            type: 1,
+            area:['350px', '200px'],
+            title:'删除分组',
+            skin: 'layui-layer-demo', //加上边框
+            content: $('#groups'),
+            btn: ['确认','取消'],
+            yes: function(index, layero){
+                var gid = $("#groupid").val();
+                if( '' == gid ){
+                    layer.alert( '请选择分组', {'icon' : 2} );
+                    return;
+                }
+                layer.open({
+                    type: 1,
+                    area:['350px', '200px'],
+                    title:'提示',
+                    skin: 'layui-layer-demo', //加上边框
+                    content: '<h3 style="margin-top: 50px;text-align: center;color: red;"> 删除分组将同步删除分组下所有好友 </h3>',
+                    btn: ['确定删除','取消'],
+                    yes: function(index, layero){
+                        $.getJSON("{:url('findgroup/removeMyGroup')}", {'gid' : gid }, function(res){
+                            if( 1 == res.code ){
+                                var add_data = '{"type":"delMyGroup", "data" : {"id" : ' + gid + '}';
+                                socket.send( add_data );  //发送socket
+
+                                layer.alert( res.msg, {'icon' : 1}, function(){
+                                    window.location.reload();
+                                })
+                            }else{
+                                layer.alert( res.msg, {'icon' : 2} );
+                            }
+                        })
+                        layer.close(index)
+                    }
+                });
+                layer.close(index)
+            }
+        });
+    }
+    //创建分组
+    $("#addMyGroup").click(function(){
+        //iframe层
+        layer.open({
+            type: 1,
+            title: '创建群组',
+            skin: 'layui-layer-demo', //加上边框
+            area: ['350px', '200px'],
+            content: $('#createGroup'),
+            btn: ['创建','取消'],
+            yes: function(index, layero){
+                var groupname = $("#groupname").val();
+                var sort = $("#groupsort").val();
+                if( '' == groupname ){
+                    layer.alert( '分组名不能为空', {'icon' : 2} );
+                    return;
+                }
+                $.getJSON("{:url('findgroup/createMyGroup')}", {'groupname' : groupname,'sort' : sort }, function(res){
+                    if( 1 == res.code ){
+                        let sed_data = res.data;
+                        socket.send(sed_data)
+
+                        layer.alert( res.msg, {'icon' : 1}, function(){
+                            window.location.reload();
+                        })
+                    }else{
+                        layer.alert( res.msg, {'icon' : 2} );
+                    }
+                })
+                layer.close(index)
+            }
+        });
+
+        //close_layer();  //关闭当前的layer层
+    });
+</script>
+</body>
+</html>

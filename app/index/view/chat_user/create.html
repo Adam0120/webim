@@ -1,0 +1,100 @@
+{extend name="public/base"}
+{block name="title"}注册页面{/block}
+{block name="main"}
+<div>
+    <form class="layui-form" action="{:url('save')}" method="post" enctype="multipart/form-data" style="width: 600px;height: 500px;margin: 50px auto;background:white;padding: 50px 50px 50px 0;border-radius: 25px">
+        {:token_field()}
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-block">
+                <input type="text" name="account"  placeholder="请输入用户名" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" placeholder="请输入密码" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">头像</label>
+            <div class="layui-upload">
+                <div class="layui-input-inline">
+                    <button type="button" class="layui-btn" id="file">上传图片</button>
+                </div>
+                <div class="layui-form-mid layui-word-aux">
+                    <img class="layui-upload-img" width="100px" id="showImg">
+                    <p id="demoText"></p>
+                </div>
+                <input type="hidden" name="avatar" id="avatar">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">昵称</label>
+            <div class="layui-input-block">
+                <input type="text" name="username"  placeholder="请输入昵称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">性别</label>
+            <div class="layui-input-block">
+                <input type="radio" name="sex" value="1" title="男">
+                <input type="radio" name="sex" value="2" title="女">
+                <input type="radio" name="sex" value="3" title="保密" checked>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">签名</label>
+            <div class="layui-input-block">
+                <input type="text" name="sign"  placeholder="请输入签名" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">验证码</label>
+            <div class="layui-input-inline">
+                <input type="text" name="captcha" placeholder="请输入验证码" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                <img src="{:captcha_src()}" onclick="javascript:this.src='{:captcha_src()}?rand='+Math.random()" style="margin-top: -8px;margin-left: -5px;">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <a href="{:url('login')}"><button class="layui-btn layui-btn-warm" type="button">去登录</button></a>
+                <button class="layui-btn" style="margin-left: 35px;" type="submit">注册</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    layui.use(['form','upload'], function(){
+        var form = layui.form,
+            upload = layui.upload;
+        var uploadInst = upload.render({
+            elem: '#file'
+            ,url: "{:url('/index/upload/uploadImg')}" //上传接口
+            ,before: function(obj){
+                //预读本地文件示例，不支持ie8
+                obj.preview(function(index, file, result){
+                    $('#showImg').attr('src', result); //图片链接（base64）
+                });
+            }
+            ,done: function(res){
+                //如果上传失败
+                if(res.code > 0){
+                    return layer.msg('上传失败');
+                }
+                //上传成功
+            }
+            ,error: function(){
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function(){
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+</script>
+{/block}

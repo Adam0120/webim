@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查找/添加群组</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link href="/static/admin/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="/static/admin/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="/static/admin/css/animate.min.css" rel="stylesheet">
+    <link href="/static/admin/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/static/admin/css/style.min.css?v=4.1.0" rel="stylesheet">
+    <!-- Sweet Alert -->
+    <link href="/static/admin/css/plugins/sweetalert/sweetalert.css" rel="stylesheet">
+</head>
+<body class="gray-bg">
+<div class="clients-list">
+    <ul class="nav nav-tabs">
+        <li id="friend_tab" class="active">
+            <a data-toggle="tab" href="#tab-1" onclick="javascript:checkshow(1);">
+                <i class="fa fa-user"></i> 好友管理 </a>
+        </li>
+        <li id="group_tab">
+            <a data-toggle="tab" href="#tab-2" onclick="javascript:checkshow(0);">
+                <i class="fa fa-user"></i> 群组管理 </a>
+        </li>
+    </ul>
+</div>
+<div class="wrapper wrapper-content animated fadeInRight" id="tab-1">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form class="form-horizontal m-t" id="commentFriend" method="post" action="">
+                        <div class="form-group">
+                            <div class="col-sm-10">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="search_txt" placeholder="输入用户名称" id="search_friend">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-primary" id="find_friend">搜索</button>
+                                    </span>
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-w-m btn-warning" style="margin-left: 30px;" id="myFriend">我的好友</button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 最近创建的用户 -->
+    <div class="row"><div class="col-sm-3"><label id="search_friend_title">最近创建的用户</label></div></div>
+    <div class="row" id="search_friend_data">
+        {if !empty($users)}
+        {foreach name="users" item="vo"}
+        <div class="col-sm-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h4>{$vo.username}<small> {$vo.sign}</small></h4>
+                </div>
+                <div class="ibox-content">
+                    <div style="margin: 0 auto">
+                        <img src="{$vo.avatar}" width="50px" height="50px" style="margin-left:50px"/>
+                    </div>
+                    <div style="margin:10px 50px"><button class="btn btn-primary" type="button" onclick="joinGroupFriend({$vo})">添加</button></div>
+                </div>
+            </div>
+        </div>
+        {/foreach}
+        {/if}
+    </div>
+
+</div>
+<div class="wrapper wrapper-content animated fadeInRight" id="tab-2" style="display: none;">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form class="form-horizontal m-t" id="commentForm" method="post" action="">
+                        <div class="form-group">
+                            <div class="col-sm-10">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="search_txt" placeholder="输入群组名称" id="search_group">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-primary" id="find_group">搜索</button>
+                                    </span>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-w-m btn-warning" id="myGroup">我的群组</button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 最近新建的分组 -->
+    <div class="row"><div class="col-sm-3"><label id="search_group_title">最近新添加的群组</label></div></div>
+    <div class="row" id="search_group_data">
+        {if !empty($group)}
+        {foreach name="group" item="vo"}
+        <div class="col-sm-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{$vo.groupname}</h5>
+                </div>
+                <div class="ibox-content">
+                    <div style="margin: 0 auto">
+                        <img src="{$vo.avatar}" width="50px" height="50px" style="margin-left:50px"/>
+                    </div>
+                    <div style="margin:10px 50px"><button class="btn btn-primary" type="button" onclick="joinGroupFriend({$vo},'group')">加入</button></div>
+                </div>
+            </div>
+        </div>
+        {/foreach}
+        {/if}
+    </div>
+
+</div>
+<script src="/static/admin/js/jquery.min.js?v=2.1.4"></script>
+<script src="/static/admin/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/static/admin/js/plugins/layer/layer.min.js"></script>
+<script src="/static/layui/layui.js"></script>
+<script type="text/javascript">
+    var layim = '',
+        cache = '';
+
+    //建立WebSocket通讯
+    var socket = new WebSocket('ws://127.0.0.1:7272');
+    layui.use(['layim'],function () {
+            layim = layui.layim,
+            cache = parent.layui.layim.cache();
+    })
+    //添加好友
+    function joinGroupFriend(info,type = 'friend'){
+        let layim = parent.layui.layim,
+            from = cache.mine.id,
+            msg = '';
+        if(type == 'friend'){
+            for (i in cache.friend) {
+                for (x in cache.friend[i].list) {
+                    if(cache.friend[i].list[x].id == info.id){
+                        return layer.msg('已经时好友了,请勿重复添加')
+                    }
+                }
+            }
+            if(info.id == cache.mine.id){
+                return layer.msg('不能添加自己')
+            }
+            layim.add({
+                username: info.username,
+                uid     : info.id,
+                avatar  : info.avatar,
+                type    : type,
+                submit  : function (group, remark, index) {
+                    msg = '{"type":"addFriend","from":"'+ from +'","to":"'+ info.id +'","group":"'+ group +'","remark":"'+ remark +'"}';
+                    socket.send(msg)
+                    parent.layer.close(index)
+                    layer.msg('已申请添加好友')
+                }
+            })
+
+        }
+        if(type == 'group'){
+            for (i in cache.group) {
+                    if(cache.group[i].id == info.id){
+                        return layer.msg('已经在群里了,请勿重复添加')
+                    }
+            }
+            layim.add({
+                groupname: info.groupname,
+                uid     : info.id,
+                avatar  : info.avatar,
+                type    : type,
+                submit  : function (group, remark, index) {
+                    msg = '{"type":"joinGroup","from":"'+ from +'","to":"'+ info.id +'","avatar":"'+ info.avatar +'","groupname":"' + info.groupname + '","remark":"'+ remark +'"}';
+                    socket.send(msg)
+                    parent.layer.close(index)
+                    layer.msg('已申请加入群聊')
+                }
+            })
+        }
+
+
+
+    }
+
+
+    $(document).ready(function(){
+        //搜索群组
+        $("#find_group").click(function(){
+            var search_txt = $("#search_group").val();
+            $.getJSON("{:url('findgroup/search')}", {'search_txt':search_txt,'type':'group'}, function(res){
+                var _html = "";
+                $("#search_group_title").text('搜索结果：');
+                if( 1 == res.code ){
+                    $.each(res.data, function(k, v){
+                        _html += '<div class="col-sm-3"><div class="ibox float-e-margins"><div class="ibox-title">';
+                        _html += '<h5>' + v.groupname + '</h5></div><div class="ibox-content"><div style="margin: 0 auto">';
+                        _html += '<img src="' + v.avatar + '" width="50px" height="50px" style="margin-left:50px"/>';
+                        _html += '</div><div style="margin:10px 50px"><button class="btn btn-primary" type="button" onclick="joinGroupFriend('+ JSON.stringify(v).replace(/"/g, '&quot;') +',group)">加入</button></div>';
+                        _html += '</div></div></div>';
+                    });
+                    $("#search_group_data").html(_html);
+
+                }else{
+                    _html += '<div class="col-sm-12"><div class="ibox float-e-margins"><div class="ibox-content">';
+                    _html += '<div class="form-group"><div class="col-sm-10"><label style="color: red">' + res.msg + '</label>';
+                    _html += '</div></div></div></div></div>';
+
+                    $("#search_group_data").html(_html);
+                }
+            })
+        });
+
+        //搜索好友
+        $("#find_friend").click(function(){
+            var search_txt = $("#search_friend").val();
+            $.getJSON("{:url('findgroup/search')}", {'search_txt':search_txt,'type':'friend'}, function(res){
+                console.log(res.msg)
+                var _html = "";
+                $("#search_friend_title").text('搜索结果：');
+                if( 1 == res.code ){
+                    $.each(res.data, function(k, v){
+                        _html += '<div class="col-sm-3"><div class="ibox float-e-margins"><div class="ibox-title">';
+                        _html += '<h4>' + v.username + '<small> '+ v.sign +'</small></h4></div><div class="ibox-content"><div style="margin: 0 auto">';
+                        _html += '<img src="' + v.avatar + '" width="50px" height="50px" style="margin-left:50px"/>';           //jquery 传递对象
+                        _html += '</div><div style="margin:10px 50px"><button class="btn btn-primary" type="button" onclick="joinGroupFriend('+ JSON.stringify(v).replace(/"/g, '&quot;') +')">添加</button></div>';
+                        _html += '</div></div></div>';
+                    });
+
+                    $("#search_friend_data").html(_html);
+
+                }else{
+                    _html += '<div class="col-sm-12"><div class="ibox float-e-margins"><div class="ibox-content">';
+                    _html += '<div class="form-group"><div class="col-sm-10"><label style="color: red">' + res.msg + '</label>';
+                    _html += '</div></div></div></div></div>';
+
+                    $("#search_friend_data").html(_html);
+                }
+            })
+        });
+
+
+
+        //管理的群组
+        $("#myGroup").click(function(){
+            window.location.href = "{:url('findgroup/myGroup')}";
+        })
+
+        //管理的好友
+        $("#myFriend").click(function(){
+            window.location.href = "{:url('findgroup/myFriend')}";
+        })
+    });
+    //选择好友或群组
+    function checkshow(tag){
+        if (tag){
+            $("#friend_tab").className = 'active'
+            $("#group_tab").className = ''
+            $("#tab-1").show()
+            $("#tab-2").hide()
+        }else {
+            $("#friend_tab").className = ''
+            $("#group_tab").className = 'active'
+            $("#tab-1").hide()
+            $("#tab-2").show()
+        }
+    }
+
+
+    function close_layer(){
+        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        parent.layer.close(index); //再执行关闭
+    }
+</script>
+</body>
+</html>

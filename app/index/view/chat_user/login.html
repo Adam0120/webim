@@ -1,0 +1,36 @@
+{extend name="public/base"}
+{block name="title"}登录页面{/block}
+{block name="main"}
+<div>
+    <form class="layui-form" action="{:url('login')}" method="post" style="width: 450px;height: 200px;margin: 50px auto;background:white;padding: 50px 50px 50px 0;border-radius: 25px">
+        {:token_field()}
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-block">
+                <input type="text" name="account"  placeholder="请输入用户名" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" placeholder="请输入密码" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">验证码</label>
+            <div class="layui-input-inline">
+                <input type="text" name="captcha" placeholder="请输入验证码" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                <img src="{:captcha_src()}" onclick="javascript:this.src='{:captcha_src()}?rand='+Math.random()" style="margin-top: -8px;margin-left: -5px;">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <a href="{:url('create')}"><button class="layui-btn layui-btn-warm" type="button">注册</button></a>
+                <button class="layui-btn" type="submit">登录</button>
+            </div>
+        </div>
+    </form>
+</div>
+{/block}
