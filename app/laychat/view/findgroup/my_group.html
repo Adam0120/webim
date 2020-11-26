@@ -24,7 +24,7 @@
 
                     <div class="clients-list">
                         <ul class="nav nav-tabs">
-                            {if count($group) > 0}
+                            {if !empty($group)}
                             {foreach name="group" item="vo" key="key"}
                             <li {if condition="$key eq 0"}class="active"{/if} data="{$vo.id}">
                             <a data-toggle="tab" href="#tab-1" onclick="javascript:show({$vo.id});">
@@ -39,7 +39,7 @@
                                     <div class="table-responsive">
                                         <table class="table table-striped table-hover">
                                             <tbody id="showusers">
-                                            {if count($users) > 0}
+                                            {if !empty($users)}
                                             {foreach name="users" item="vo"}
                                             <tr>
                                                 <td class="client-avatar"><img alt="image" src="{$vo.useravatar}"> </td>

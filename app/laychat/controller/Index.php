@@ -18,7 +18,7 @@ class Index extends MyBaseController
     {
         parent::initialize();
         $this->memberInfo = session('member_info');
-        if(!$this->memberInfo) return alert_error('请先登录~','/index/chatUser/login');
+        if(!$this->memberInfo) return $this->redirect('/index/chatUser/login');
     }
 
     public function index()

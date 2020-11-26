@@ -21,7 +21,7 @@ class Chatlog extends MyBaseController
     public function initialize()
     {
         parent::initialize();
-        if(!session('member_info')) return alert_error('请先登录~','/index/chatUser/login');
+        if(!session('member_info')) return $this->redirect('/index/chatUser/login');
     }
     //聊天记录
     public function index()

@@ -19,7 +19,7 @@ class Findgroup extends MyBaseController
     public function initialize()
     {
         parent::initialize();
-        if(!session('member_info')) return alert_error('请先登录~','/index/chatUser/login');
+        if(!session('member_info')) return $this->redirect('/index/chatUser/login');
     }
     //显示查询 / 添加 分组的页面
     public function index()
@@ -188,7 +188,7 @@ class Findgroup extends MyBaseController
     		return json( ['code' => 1, 'data' => $users, 'msg' => 'success'] );
     	}
     	$users = [];
-    	$group = Group::field('id,groupname')->where('owner_id', session('id'))->select();
+    	$group = Group::field('id,groupname')->where('owner_id', session('id'))->select()->toArray();
     	if( !empty($group) ){
     		$users = GroupMember::field('username,member_id,useravatar,group_id,type')
                 ->where('group_id', $group['0']['id'])
